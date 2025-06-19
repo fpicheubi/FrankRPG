@@ -73,18 +73,44 @@ def draw_world_panel(stdscr, game_state):
 
 def draw_context_panel(stdscr, game_state):
     height, width = stdscr.getmaxyx()
-    context_height = height - 7
-    context_width = width // 2
+    context_height = height - 7 # Leaving enough space at the bottom of the screen for the input panel
+    context_width = width // 2 # Located in the rightmost half of the screen
     context_win = curses.newwin(context_height, context_width, 0, width // 2)
+        
+    view = game_state.get("context_view", "world") # Retrieve current context value.  If none exist, defaults to world view
+    title = view.capitalize() if not view.startswith("poi:") else view.split(":",1)[1].capitalize() # Capitalizes the first letter of the view name. For POIs, removes the "poi:" part of the string
     context_win.box()
-    context_win.addstr(0, 2, " Context ")
+    context_win.addstr(0, 2, f" {title} View ")
 
     character = game_state.get("character")
-    if character:
+
+    if view == "character" and character:
         context_win.addstr(2, 2, f"Name: {character.name}")
         context_win.addstr(3, 2, f"HP: {character.hp}/{character.max_hp}")
-        context_win.addstr(4, 2, f"Level: {character.level}")
-        # Add more character stats or context info here
+        context_win.addstr(4, 2, f"Level: {character.level}")      
+
+    elif view == "combat":
+        context_win.addstr(2, 2, "Combat Mode:")
+        context_win.addstr(3, 4, game_state.get("combat_message", "No combat info"))
+
+    elif view == "inventory" and character:
+        context_win.addstr(2,2, f"Inventory: ")
+        for i, item in enumerate(character.inventory):
+            context_win.addstr(3 + i, 4, f"- {item}")
+        context_win.addstr(3 + len(character.inventory), 4, f"Gold: {character.gold}")
+
+    elif view.startswith("poi:"):
+        poi_name = view.split(":", 1)[1]
+        context_win.addstr(2, 2, f"{poi_name} Dashboard")
+        # Add POI-specific logic here
+
+    elif view == "world" and character:
+        context_win.addstr(2, 2, f"Name: {character.name}")
+        context_win.addstr(3, 2, f"HP: {character.hp}/{character.max_hp}")
+        context_win.addstr(4, 2, f"Level: {character.level}")      
+        message = game_state.get("message", "")
+        if message:
+            context_win.addstr(height -9, 2, f"Msg: {message[:context_width - 4]}")
 
     context_win.refresh()
 
@@ -95,8 +121,6 @@ def draw_input_panel(stdscr, game_state):
     input_win = curses.newwin(input_height, input_width, height - input_height, width // 2)
     input_win.box()
     input_win.addstr(0, 2, " Input ")
-
-    message = game_state.get("message", "")
-    input_win.addstr(2, 2, message[:input_width - 4])
-
+    input_win.addstr(1, 2, "Directional keys: A = West , W = North , S= South , D = East ")
+    input_win.addstr(2, 2, "Contextual windows: C= Character I = Inventory , O = Options , Q = Quit, ESC = Return to world view")
     input_win.refresh()

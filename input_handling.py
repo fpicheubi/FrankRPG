@@ -32,8 +32,10 @@ def move_and_report(character, direction, game_state):
     position = character.position
     poi = get_poi_at(position['x'], position['y'])
     if poi:
+        game_state['context_view'] = f"poi:{poi['name']}"
         game_state['message'] = f"You arrived at {poi['name']}."
     else:
+        game_state['context_view'] = "world"
         game_state['message'] = f"You moved to ({position['x']}, {position['y']})."
 
 def handle_input(key, game_state):
@@ -47,7 +49,13 @@ def handle_input(key, game_state):
     elif key in (ord('d'), curses.KEY_RIGHT):
         move_and_report(game_state['character'], "east", game_state)
     elif key == ord('i'):
-        show_inventory(game_state)
+        game_state['context_view'] = 'inventory'
+    elif key == ord('c'):
+        game_state['context_view'] = 'character'
+    elif key == 27: # ESC  <- This might cause problems and would need future fixing. i.e. if the character is located on a POI, pressing ESC won't handle it and still flip to the world view
+        game_state['context_view'] = 'world'
+    elif key == ord('o'):
+        game_state['context_view'] = 'options'
     elif key == ord('q'):
         game_state['running'] = False
     else:

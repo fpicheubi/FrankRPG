@@ -62,7 +62,8 @@ def main(stdscr, player):
 
     # Initialize game state
     game_state = game_state_module.initialize_game_state(player)
-    
+    game_state['context_view'] = 'world' # Default view is set to world
+
     # Initial UI Draw before entering the game loop    
     ui.draw_world_panel(stdscr, game_state)
     ui.draw_context_panel(stdscr, game_state)

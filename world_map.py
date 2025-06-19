@@ -44,6 +44,7 @@ POINTS_OF_INTEREST = {
     (21, 13): {'name': 'City', 'symbol': 'C'},
     (3, 20): {'name': 'Camp', 'symbol': 'c'},
     (20, 20): {'name': 'Merchant', 'symbol': 'M'},
+    (30, 30): {'name': 'Fountain', 'symbol': 'F'},
 }
 
 def get_poi_at(x, y):
