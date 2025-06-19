@@ -19,23 +19,33 @@ Date: 2025-06-06
 """
 #Standard libraries imports
 #Third party libraries imports
+import curses
 #Local application imports 
 import navigation
 import combat
 import game_state as gs
+from world_map import get_poi_at
+
+def move_and_report(character, direction, game_state):
+    ''' This simplifies repeating logic block for each movement directions'''
+    navigation.move_character(character, direction)
+    position = character.position
+    poi = get_poi_at(position['x'], position['y'])
+    if poi:
+        game_state['message'] = f"You arrived at {poi['name']}."
+    else:
+        game_state['message'] = f"You moved to ({position['x']}, {position['y']})."
 
 def handle_input(key, game_state):
-    """
-    Handles player input based on the key pressed.
-    """
+    ''' Handles player input based on the key pressed '''
     if key in (ord('w'), curses.KEY_UP):
-        navigation.move_character(game_state, direction="north")
+        move_and_report(game_state['character'], "north", game_state)
     elif key in (ord('s'), curses.KEY_DOWN):
-        navigation.move_character(game_state, direction="south")
+        move_and_report(game_state['character'], "south", game_state)
     elif key in (ord('a'), curses.KEY_LEFT):
-        navigation.move_character(game_state, direction="east")
+        move_and_report(game_state['character'], "west", game_state)
     elif key in (ord('d'), curses.KEY_RIGHT):
-        navigation.move_character(game_state, direction="west")
+        move_and_report(game_state['character'], "east", game_state)
     elif key == ord('i'):
         show_inventory(game_state)
     elif key == ord('q'):
@@ -44,9 +54,7 @@ def handle_input(key, game_state):
         game_state['message'] = "Unknown command."
 
 def show_inventory(game_state):
-    """
-    Displays the character's inventory.
-    """
+    """ Displays the character's inventory """
     inventory = game_state['character'].inventory
     if not inventory:
         game_state['message'] = "Your inventory is empty."

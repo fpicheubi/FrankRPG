@@ -24,9 +24,12 @@ Date: 2025-06-04
 def initialize_game_state(character):
     return {
         "character": character,
+        "message": "Welcome to the game!",
+        "running": True,
+        "world_map": [],
         "world": {
-            "current_area": "starting_village",
-            "visited_areas": ["starting_village"]
+            "current_area": "City",
+            "visited_areas": ["City"]
         },
         "monsters_defeated": [],
         "merchant": {

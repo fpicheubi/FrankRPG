@@ -17,26 +17,21 @@ Date: 2025-06-06
 #Standard libraries imports
 #Third party libraries imports
 #Local application imports
+from world_map import WORLD_BOUNDS
+
 
 def move_character(character, direction):
-    """
-    Moves the character in the specified direction.
+    x, y = character.position['x'], character.position['y']
 
-    Parameters:
-    - character (dict): The character dictionary with 'position' key.
-    - direction (str): The direction to move ('north', 'south', 'east', 'west').
-
-    Returns:
-    None
-    """
-    if direction == 'north':
-        character['position']['y'] += 1
-    elif direction == 'south':
-        character['position']['y'] -= 1
-    elif direction == 'east':
-        character['position']['x'] += 1
-    elif direction == 'west':
-        character['position']['x'] -= 1
+    if direction == 'north' and y > WORLD_BOUNDS['y_min']:
+        character.position['y'] -= 1
+    elif direction == 'south' and y < WORLD_BOUNDS['y_max']:
+        character.position['y'] += 1
+    elif direction == 'east' and x < WORLD_BOUNDS['x_max']:
+        character.position['x'] += 1
+    elif direction == 'west' and x > WORLD_BOUNDS['x_min']:
+        character.position['x'] -= 1
     else:
-        print(f"Invalid direction: {direction}")
+        print(f"Invalid or blocked direction: {direction}")
+
 

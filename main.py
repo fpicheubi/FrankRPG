@@ -31,28 +31,46 @@ Date: 2025-06-06
 #Standard libraries imports
 import os
 import math
+import logging
 #Third party libraries imports
 import curses
 # local application imports 
-import enemies
+import character as character_module
 import combat
-import items
-import world
-import utils
 import decorators
+import enemies
+import equipment
+import game_state as game_state_module
+import input_handling
+import items
 import navigation
-import game_state
-import character
+import save_game
 import ui
+import utils
+import world_map
 
-def main(stdscr):
+
+logging.basicConfig(filename="debug.log", level=logging.DEBUG)
+
+def update_game_state(game_state):
+    pass # Placeholder for future game state updates
+
+def main(stdscr, player):
     # Setup
     curses.curs_set(0)
     stdscr.clear()
-    character = character.create_character()
-    game_state = game_state.initialize_game_state(character.to_dict())
 
-    while True:
+    # Initialize game state
+    game_state = game_state_module.initialize_game_state(player)
+    
+    # Initial UI Draw before entering the game loop    
+    ui.draw_world_panel(stdscr, game_state)
+    ui.draw_context_panel(stdscr, game_state)
+    ui.draw_input_panel(stdscr, game_state)
+    stdscr.refresh()
+
+    # Main game loop
+    while game_state['running']:
         # 1. Draw UI Panels
         ui.draw_world_panel(stdscr, game_state)
         ui.draw_context_panel(stdscr, game_state)
@@ -60,9 +78,8 @@ def main(stdscr):
 
         # 2. Get Player Input
         key = stdscr.getch()
-
         # 3. Handle Input
-        handle_input(key, game_state)
+        input_handling.handle_input(key, game_state)
 
         # 4. Update Game State (if needed)
         update_game_state(game_state)
@@ -70,4 +87,6 @@ def main(stdscr):
         # 5. Refresh screen
         stdscr.refresh()
 
-curses.wrapper(main)
+if __name__ == "__main__":
+    player = character_module.create_character() #Initialize the player, happens before curses starts to prevent the curses UI from hiding character creation
+    curses.wrapper(lambda stdscr: main(stdscr, player))

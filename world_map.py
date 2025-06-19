@@ -29,3 +29,30 @@ Date: 2025-06-06
 #Standard libraries imports
 #Third party libraries imports
 #Local application imports
+
+
+''' Define the playable area of the map '''
+WORLD_BOUNDS = {
+    'x_min': 0,
+    'x_max': 132, # The map is 132 columns large
+    'y_min': 0,
+    'y_max': 73 # The map is 73 rows high
+}
+
+''' Define points of interest '''
+POINTS_OF_INTEREST = {
+    (21, 13): {'name': 'City', 'symbol': 'C'},
+    (3, 20): {'name': 'Camp', 'symbol': 'c'},
+    (20, 20): {'name': 'Merchant', 'symbol': 'M'},
+}
+
+def get_poi_at(x, y):
+    ''' Returns the name of a point of interest at a given coordinate: '''
+    return POINTS_OF_INTEREST.get((x, y), None)
+
+def get_coordinates_of_poi(poi_name):
+    ''' Returns the coordinates of a given point of interest: '''
+    for coords, name in POINTS_OF_INTEREST.items():
+        if name == poi_name:
+            return coords
+    return None

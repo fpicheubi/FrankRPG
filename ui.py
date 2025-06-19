@@ -28,25 +28,52 @@ Date: 2025-06-06
 #Third party libraries imports
 import curses
 #Local application imports
+from world_map import WORLD_BOUNDS
+from world_map import POINTS_OF_INTEREST
 
+
+def render_map(player_position):
+    ''' Map rendering function for Pure logic.  It builds a 2D representation of the game world as a list of strings to keep it independant from the Curse UI system.  
+    It makes it easier to test without needing a terminal and can be re-used in other contexts (e.g. saving a snapshot of the map, debugging, logging)'''
+    
+    # Prepares the grid inside world bounds
+    width = WORLD_BOUNDS['x_max'] - WORLD_BOUNDS['x_min'] + 1
+    height = WORLD_BOUNDS['y_max'] - WORLD_BOUNDS['y_min'] + 1
+    map_grid = [['.' for _ in range(width)] for _ in range(height)]
+
+    # Place POIs symbols dynamically 
+    for (x, y), poi in POINTS_OF_INTEREST.items():
+        symbol = poi.get('symbol', '?') # Fallback to '?' if symbol is missing
+        if 0 <= x < width and 0 <= y < height:
+            map_grid[y][x] = symbol
+
+    # Place the player   
+    x, y = player_position
+    if 0 <= x < width and 0 <= y < height:
+        map_grid[y][x] = '@'
+    return [''.join(row) for row in map_grid]
 
 def draw_world_panel(stdscr, game_state):
+    ''' UI rendering function.  Takes the rendered map and displays it using curses.  It keeps all curses-specific logic in one place and makes it easier to adapt 
+    or replace the UI layer later (e.g. switching to a GUI or web interface) '''
     height, width = stdscr.getmaxyx()
     world_width = width // 2
     world_win = curses.newwin(height, world_width, 0, 0)
     world_win.box()
     world_win.addstr(0, 2, " World View ")
-    
-    # Example content
-    world_map = game_state.get("world_map", [])
-    for i, line in enumerate(world_map[:height - 2]):
+
+    player_position = game_state['character'].position
+    map_lines = render_map((player_position['x'], player_position['y']))
+
+    for i, line in enumerate(map_lines[:height - 2]):
         world_win.addstr(i + 1, 1, line[:world_width - 2])
-    
+
     world_win.refresh()
+
 
 def draw_context_panel(stdscr, game_state):
     height, width = stdscr.getmaxyx()
-    context_height = height - 5
+    context_height = height - 7
     context_width = width // 2
     context_win = curses.newwin(context_height, context_width, 0, width // 2)
     context_win.box()
@@ -63,7 +90,7 @@ def draw_context_panel(stdscr, game_state):
 
 def draw_input_panel(stdscr, game_state):
     height, width = stdscr.getmaxyx()
-    input_height = 5
+    input_height = 7
     input_width = width // 2
     input_win = curses.newwin(input_height, input_width, height - input_height, width // 2)
     input_win.box()
