@@ -52,7 +52,7 @@ def handle_input(key, game_state):
         game_state['context_view'] = 'inventory'
     elif key == ord('c'):
         game_state['context_view'] = 'character'
-    elif key == 27: # ESC  <- This might cause problems and would need future fixing. i.e. if the character is located on a POI, pressing ESC won't handle it and still flip to the world view
+    elif key == 27: # ESC  <- This might cause problems and would need future fixing. i.e. if the character is located on a POI, pressing ESC won't handle it properly and still flip to the world view
         game_state['context_view'] = 'world'
     elif key == ord('o'):
         game_state['context_view'] = 'options'
@@ -68,3 +68,13 @@ def show_inventory(game_state):
         game_state['message'] = "Your inventory is empty."
     else:
         game_state['message'] = "Inventory: " + ", ".join(item.name for item in inventory)
+
+def use_item(game_state, item_name):
+    character = game_state['character']
+    if character.has_item(item_name):
+        item = character.inventory[item_name]['item']
+        item.use(character)
+        character.remove_item(item_name)
+        game_state['message'] = f"You used {item_name}."
+    else:
+        game_state['message'] = f"You don't have a {item_name}."

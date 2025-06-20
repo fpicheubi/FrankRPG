@@ -27,7 +27,7 @@ import os
 #Third party libraries imports
 #Local application imports 
 import utils
-import equipment
+import items
 
 class Character:
     def __init__(self, name, constitution, strength): #The only initialization arguments passed are what the player input and randomized stats.  The rest is static and won't requirement arguments.
@@ -41,16 +41,17 @@ class Character:
         self.max_hp = 10 * constitution
         self.gold = 50
         self.position = {"x": 21, "y": 13}
-        self.inventory = []
-        # Initialize equipment with actual Equipment object
-        self.equipment = {
-            "weapon": equipment.Equipment("Wooden Sword", "weapon", {"strength": 1}),
-            "armor": equipment.Equipment("Linen Shirt", "armor", {"constitution": 1})
-        }
-        # Apply equipment bonuses
-        self.equipment["weapon"].equip(self)
-        self.equipment["armor"].equip(self)
-
+        self.inventory = {}
+        # Initialize items inventory slots
+        self.item = {}
+        # Initialize equipment slots
+        self.equipment = {}
+        # Adds starting equipment to character inventory
+        self.add_item(items.WOODEN_SWORD)
+        self.add_item(items.RAGS_ARMOR)
+        # Equip sword and armor to gain bonuses
+        items.WOODEN_SWORD.equip(self)
+        items.RAGS_ARMOR.equip(self)
 
     def to_dict(self):
         # Used for saving the game
@@ -80,6 +81,20 @@ class Character:
             "equipment": self.equipment
         }
 
+    def add_item(self, item, quantity=1):
+        if item.name in self.inventory:
+            self.inventory[item.name]['quantity'] += quantity
+        else:
+            self.inventory[item.name] = {'item': item, 'quantity': quantity}
+
+    def remove_item(self, item_name, quantity=1):
+        if item_name in self.inventory:
+            self.inventory[item_name]['quantity'] -= quantity
+            if self.inventory[item_name]['quantity'] <= 0:
+                del self.inventory[item_name]
+
+    def has_item(self, item_name):
+        return item_name in self.inventory and self.inventory[item_name]['quantity'] > 0
 
 def create_character():
     print(f"=== Character Creator ==={os.linesep}")

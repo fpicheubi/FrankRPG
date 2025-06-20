@@ -39,7 +39,6 @@ import character as character_module
 import combat
 import decorators
 import enemies
-import equipment
 import game_state as game_state_module
 import input_handling
 import items

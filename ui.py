@@ -94,9 +94,10 @@ def draw_context_panel(stdscr, game_state):
         context_win.addstr(3, 4, game_state.get("combat_message", "No combat info"))
 
     elif view == "inventory" and character:
-        context_win.addstr(2,2, f"Inventory: ")
-        for i, item in enumerate(character.inventory):
-            context_win.addstr(3 + i, 4, f"- {item}")
+        context_win.addstr(2, 2, "Inventory:")
+        for i, (item_name, data) in enumerate(character.inventory.items()):
+            qty = data['quantity']
+            context_win.addstr(3 + i, 4, f"- {item_name} x{qty}")
         context_win.addstr(3 + len(character.inventory), 4, f"Gold: {character.gold}")
 
     elif view.startswith("poi:"):
