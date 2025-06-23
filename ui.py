@@ -53,6 +53,7 @@ def render_map(player_position):
         map_grid[y][x] = '@'
     return [''.join(row) for row in map_grid]
 
+
 def draw_world_panel(stdscr, game_state):
     ''' UI rendering function.  Takes the rendered map and displays it using curses.  It keeps all curses-specific logic in one place and makes it easier to adapt 
     or replace the UI layer later (e.g. switching to a GUI or web interface) '''
@@ -87,11 +88,17 @@ def draw_context_panel(stdscr, game_state):
     if view == "character" and character:
         context_win.addstr(2, 2, f"Name: {character.name}")
         context_win.addstr(3, 2, f"HP: {character.hp}/{character.max_hp}")
-        context_win.addstr(4, 2, f"Level: {character.level}")      
+        context_win.addstr(4, 2, f"Level: {character.level}")
+        context_win.addstr(4, 2, f"Experience: {character.experience}")
+        context_win.addstr(5, 2, f"Constitution: {character.constitution}")
+        context_win.addstr(6, 2, f"Strength: {character.strength}")
+        context_win.addstr(7, 2, f"Stamina: {character.stamina}")
 
     elif view == "combat":
-        context_win.addstr(2, 2, "Combat Mode:")
-        context_win.addstr(3, 4, game_state.get("combat_message", "No combat info"))
+        line1 = game_state.get('combat_line1', '')
+        line2 = game_state.get('combat_line2', '')
+        context_win.addstr(2, 2, line1)
+        context_win.addstr(3, 2, line2)
 
     elif view == "inventory" and character:
         context_win.addstr(2, 2, "Inventory:")
@@ -103,7 +110,9 @@ def draw_context_panel(stdscr, game_state):
     elif view.startswith("poi:"):
         poi_name = view.split(":", 1)[1]
         context_win.addstr(2, 2, f"{poi_name} Dashboard")
-        # Add POI-specific logic here
+        # Fountain-specific logic placeholder:
+        # City-specific logic placeholder:
+        # Merchant-Specific logic placeholder:
 
     elif view == "world" and character:
         context_win.addstr(2, 2, f"Name: {character.name}")
@@ -115,6 +124,7 @@ def draw_context_panel(stdscr, game_state):
 
     context_win.refresh()
 
+
 def draw_input_panel(stdscr, game_state):
     height, width = stdscr.getmaxyx()
     input_height = 7
@@ -122,6 +132,22 @@ def draw_input_panel(stdscr, game_state):
     input_win = curses.newwin(input_height, input_width, height - input_height, width // 2)
     input_win.box()
     input_win.addstr(0, 2, " Input ")
-    input_win.addstr(1, 2, "Directional keys: A = West , W = North , S= South , D = East ")
-    input_win.addstr(2, 2, "Contextual windows: C= Character I = Inventory , O = Options , Q = Quit, ESC = Return to world view")
+
+    context = game_state.get("context_view", "world")
+
+    if context == "combat":
+        input_win.addstr(1, 2, "Combat Options:")
+        input_win.addstr(2, 4, "(A)ttack  (P)otion  (F)lee")
+        input_win.addstr(3, 4, "ESC = Return to world view")
+    elif context == "world":
+        input_win.addstr(1, 2, "Directional keys: A = West , W = North , S = South , D = East")
+        input_win.addstr(2, 2, "Contextual windows: C = Character, I = Inventory, O = Options")
+        input_win.addstr(3, 2, "ESC = Return to world view")
+        input_win.addstr(4, 2, "Q = Quit game")
+    else: # Logic for other POI will be defined starting here
+        input_win.addstr(1, 2, "Directional keys: A = West , W = North , S = South , D = East")
+        input_win.addstr(2, 2, "Contextual windows: C = Character, I = Inventory, O = Options")
+        input_win.addstr(3, 2, "ESC = Return to world view")
+        input_win.addstr(4, 2, "Q = Quit game")
     input_win.refresh()
+

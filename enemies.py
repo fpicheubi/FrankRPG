@@ -24,14 +24,36 @@ Author: Francois Piche
 Date: 2025-06-06
 """
 #Standard libraries imports
+import random
 #Third party libraries imports
 #Local application imports
 
-
-class Goblin:
-    def __init__(self):
-        self.name = "Goblin"
-        self.constitution = 5
-        self.strength = 5
+class Enemy:
+    def __init__(self, name, constitution, strength,experience):
+        self.name = name
+        self.constitution = constitution
+        self.strength = strength
         self.hp = 10 * constitution
         self.stamina = 5 * constitution
+        self.experience = experience
+
+ENEMY_TEMPLATES = {
+    "Goblin": {"constitution": 5, "strength": 5, "experience": 10},
+    "Goblin King": {"constitution": 10, "strength": 7, "experience": 20},
+    "Skeleton": {"constitution": 6, "strength": 6, "experience": 12},
+    "Orc": {"constitution": 8, "strength": 9, "experience": 16},
+    "Bandit": {"constitution": 7, "strength": 6, "experience": 14},
+    "Wolf": {"constitution": 4, "strength": 5, "experience": 10},
+    "Zombie": {"constitution": 9, "strength": 4, "experience": 18},
+    "Dark Knight": {"constitution": 12, "strength": 10, "experience": 24},
+    "Slime": {"constitution": 3, "strength": 2, "experience": 6},
+    "Witch": {"constitution": 6, "strength": 8, "experience": 12},
+    "Troll": {"constitution": 11, "strength": 9, "experience": 22},
+    "Vampire": {"constitution": 8, "strength": 10, "experience": 16},
+}
+
+def generate_enemy():
+    name = random.choice(list(ENEMY_TEMPLATES.keys()))
+    stats = ENEMY_TEMPLATES[name]
+    return Enemy(name, stats["constitution"], stats["strength"],stats["experience"])
+

@@ -11,7 +11,7 @@ Functions:
   based on the given direction.
 
 Author: Francois Piche
-Date: 2025-06-06
+Date: 2025-06-20
 """
 
 #Standard libraries imports
@@ -19,19 +19,19 @@ Date: 2025-06-06
 #Local application imports
 from world_map import WORLD_BOUNDS
 
-
 def move_character(character, direction):
     x, y = character.position['x'], character.position['y']
-
     if direction == 'north' and y > WORLD_BOUNDS['y_min']:
         character.position['y'] -= 1
+        return True
     elif direction == 'south' and y < WORLD_BOUNDS['y_max']:
         character.position['y'] += 1
+        return True
     elif direction == 'east' and x < WORLD_BOUNDS['x_max']:
         character.position['x'] += 1
+        return True
     elif direction == 'west' and x > WORLD_BOUNDS['x_min']:
         character.position['x'] -= 1
-    else:
-        print(f"Invalid or blocked direction: {direction}")
-
+        return True
+    return False
 

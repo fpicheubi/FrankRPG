@@ -18,7 +18,7 @@ Note:
 - This module is intended to be used during game initialization.
 
 Author: Francois Piche
-Date: 2025-06-04
+Date: 2025-06-20
 """
 
 #Standard libraries imports
@@ -95,6 +95,24 @@ class Character:
 
     def has_item(self, item_name):
         return item_name in self.inventory and self.inventory[item_name]['quantity'] > 0
+    
+    def gain_experience(self, amount):
+        #Used to level up the character when successfully executing certain actions (e.g. Killing an enemy, finishing a quest)
+        self.experience += amount
+        if self.experience >= self.experience_to_next_level():
+            self.level_up()
+
+    def experience_to_next_level(self):
+        return 100 * self.level  # Example formula. Lvl 2 = 100XP, Lvl 3 = 200XP, Lvl 4 = 300XP
+
+    def level_up(self):
+        self.level += 1
+        self.experience = 0 #Each time we level up, XP goes back to zero
+        self.constitution += 1
+        self.strength += 1
+        self.max_hp = 10 * self.constitution
+        self.hp = self.max_hp # Each time we level up, we get full HP as a bonus! YAY
+
 
 def create_character():
     print(f"=== Character Creator ==={os.linesep}")
@@ -131,20 +149,3 @@ def create_character():
     if rerolls_remaining == 0:
         print(f"You ran out of rerolls!")
     return Character(name, **attributes)
-
-def gain_experience(self, amount):
-    #Used to level up the character when successfully executing certain actions (e.g. Killing an enemy, finishing a quest)
-    self.experience += amount
-    if self.experience >= self.experience_to_next_level():
-        self.level_up()
-
-def experience_to_next_level(self):
-    return 100 * self.level  # Example formula. Lvl 2 = 100XP, Lvl 3 = 200XP, Lvl 4 = 300XP
-
-def level_up(self):
-    self.level += 1
-    self.experience = 0 #Each time we level up, XP goes back to zero
-    self.constitution += 1
-    self.strength += 1
-    self.max_hp = 10 * self.constitution
-    self.hp = self.max_hp # Each time we level up, we get full HP as a bonus! YAY

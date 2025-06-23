@@ -54,6 +54,7 @@ logging.basicConfig(filename="debug.log", level=logging.DEBUG)
 def update_game_state(game_state):
     pass # Placeholder for future game state updates
 
+
 def main(stdscr, player):
     # Setup
     curses.curs_set(0)
@@ -61,6 +62,7 @@ def main(stdscr, player):
 
     # Initialize game state
     game_state = game_state_module.initialize_game_state(player)
+    game_state['last_position'] = dict(game_state['character'].position)
     game_state['context_view'] = 'world' # Default view is set to world
 
     # Initial UI Draw before entering the game loop    
@@ -78,13 +80,28 @@ def main(stdscr, player):
 
         # 2. Get Player Input
         key = stdscr.getch()
+        
         # 3. Handle Input
         input_handling.handle_input(key, game_state)
 
-        # 4. Update Game State (if needed)
+        # 4. Enter combat loop if necessary        
+        player_pos = game_state['character'].position
+        poi = world_map.get_poi_at(player_pos['x'], player_pos['y'])
+
+        # Only trigger combat if entering the camp from another location
+        if poi and poi['name'] == 'Camp' and game_state['context_view'] != 'combat':
+            if not game_state.get('combat_just_ended') and game_state.get('last_poi') != poi['name']: 
+                game_state['context_view'] = 'combat'
+                combat.start_combat(game_state)
+                game_state['last_poi'] = poi['name']
+        else:
+            game_state['last_poi'] = None  # Reset when not in a POI
+            game_state['combat_just_ended'] = False #Resets the combat cooldown flag when the player moves away from the camp
+
+        # 5. Update Game State (if needed)
         update_game_state(game_state)
 
-        # 5. Refresh screen
+        # 6. Refresh screen
         stdscr.refresh()
 
 if __name__ == "__main__":

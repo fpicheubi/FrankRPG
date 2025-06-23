@@ -15,7 +15,7 @@ Dependencies:
 Intended to be used with a curses-based UI in main.py.
 
 Author: Francois Piche
-Date: 2025-06-06
+Date: 2025-06-20
 """
 #Standard libraries imports
 #Third party libraries imports
@@ -28,7 +28,9 @@ from world_map import get_poi_at
 
 def move_and_report(character, direction, game_state):
     ''' This simplifies repeating logic block for each movement directions'''
-    navigation.move_character(character, direction)
+    success = navigation.move_character(character, direction)
+    if not success:
+            game_state['message'] = f"Invalid or blocked direction: {direction}"
     position = character.position
     poi = get_poi_at(position['x'], position['y'])
     if poi:
@@ -36,9 +38,30 @@ def move_and_report(character, direction, game_state):
         game_state['message'] = f"You arrived at {poi['name']}."
     else:
         game_state['context_view'] = "world"
-        game_state['message'] = f"You moved to ({position['x']}, {position['y']})."
+        if success: # Making sure that the navigation was successfull before displaying where the character moved
+            game_state['last_position'] = dict(character.position)
+            game_state['message'] = f"You moved to ({position['x']}, {position['y']})."
+
 
 def handle_input(key, game_state):
+    context = game_state.get("context_view", "world")
+
+    ''' Provides combat-based input handling '''
+    if context == 'combat':
+        if game_state.get('combat_state') == 'awaiting_input':
+            if key in [ord('a'), ord('A')]:
+                game_state['combat_state'] = 'player_attack'
+                combat.perform_attack(game_state)
+            elif key in [ord('f'), ord('F')]:
+                game_state['combat_state'] = 'flee_attempt'
+                combat.flee_combat(game_state)
+            # Continue combat flow after player action
+            if game_state.get('combat_state') == 'enemy_turn':
+                combat.enemy_turn(game_state)
+            elif game_state.get('combat_state') == 'flee_attempt':
+                combat.flee_combat(game_state)
+            return  # Prevents fall-through to movement logic
+
     ''' Handles player input based on the key pressed '''
     if key in (ord('w'), curses.KEY_UP):
         move_and_report(game_state['character'], "north", game_state)
@@ -61,6 +84,7 @@ def handle_input(key, game_state):
     else:
         game_state['message'] = "Unknown command."
 
+
 def show_inventory(game_state):
     """ Displays the character's inventory """
     inventory = game_state['character'].inventory
@@ -68,6 +92,7 @@ def show_inventory(game_state):
         game_state['message'] = "Your inventory is empty."
     else:
         game_state['message'] = "Inventory: " + ", ".join(item.name for item in inventory)
+
 
 def use_item(game_state, item_name):
     character = game_state['character']

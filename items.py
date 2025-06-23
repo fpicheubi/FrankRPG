@@ -22,7 +22,7 @@ Dependencies:
 This module is used by inventory systems, combat (for consumables), and quest logic.
 
 Author: Francois Piche
-Date: 2025-06-06
+Date: 2025-06-20
 """
 #Standard libraries imports
 #Third party libraries imports
