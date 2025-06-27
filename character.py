@@ -34,9 +34,17 @@ class Character:
         self.name = name
         self.level = 1
         self.experience = 0
+        
+        # Base character stat
+        self.base_constitution = constitution 
+        self.base_strength = strength
+        self.stamina = 5 * constitution
+
+        # Current stats (Modified by gear)
         self.constitution = constitution
         self.strength = strength
-        self.stamina = 5 * constitution
+        
+        
         self.hp = 10 * constitution
         self.max_hp = 10 * constitution
         self.gold = 50
@@ -103,13 +111,13 @@ class Character:
             self.level_up()
 
     def experience_to_next_level(self):
-        return 100 * self.level  # Example formula. Lvl 2 = 100XP, Lvl 3 = 200XP, Lvl 4 = 300XP
+        return 50 * (self.level+1)  # Example formula. Lvl 2 = 100XP, Lvl 3 = 200XP, Lvl 4 = 300XP
 
     def level_up(self):
         self.level += 1
         self.experience = 0 #Each time we level up, XP goes back to zero
-        self.constitution += 1
-        self.strength += 1
+        self.base_constitution += 1
+        self.base_strength += 1
         self.max_hp = 10 * self.constitution
         self.hp = self.max_hp # Each time we level up, we get full HP as a bonus! YAY
 
@@ -119,8 +127,8 @@ def create_character():
     name = input("Enter character name: ")
     print(f" ")
     attributes = {
-         "constitution": random.randint(5, 20),
-         "strength": random.randint(5, 20),
+         "constitution": random.randint(10, 20),
+         "strength": random.randint(10, 20),
     }
     confirm_stats = ""
     rerolls_remaining = 3
@@ -137,8 +145,8 @@ def create_character():
         if confirm_stats == "R":
             rerolls_remaining -= 1
             attributes = {
-                "constitution": random.randint(5, 20),
-                "strength": random.randint(5, 20),
+                "constitution": random.randint(10, 20),
+                "strength": random.randint(10, 20),
             }
             print(f"The following character will be created: {os.linesep}")
             print(f"Name: {name}")

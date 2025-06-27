@@ -25,6 +25,7 @@ Author: Francois Piche
 Date: 2025-06-20
 """
 #Standard libraries imports
+import inspect
 #Third party libraries imports
 #Local application imports
 
@@ -37,6 +38,7 @@ class Item:
         self.slot = slot  # e.g., "weapon", "armor"
         self.bonus = bonus or {}  # e.g., {"strength": +2}
 
+
     def use(self, target):
         if self.equippable:
             self.equip(target)
@@ -45,12 +47,25 @@ class Item:
                 if hasattr(target, stat):
                     setattr(target, stat, min(getattr(target, f"max_{stat}", getattr(target, stat)), getattr(target, stat) + value))
 
+
     def equip(self, character):
         if self.slot:
+            # Unequip existing item in the same slot
+            if self.slot in character.equipment:
+                character.equipment[self.slot].unequip(character)
             character.equipment[self.slot] = self
             for stat, value in self.bonus.items():
                 if hasattr(character, stat):
                     setattr(character, stat, getattr(character, stat) + value)
+
+
+    def unequip(self, character):
+        if self.slot and character.equipment.get(self.slot) == self:
+            for stat, value in self.bonus.items():
+                if hasattr(character, stat):
+                    setattr(character, stat, getattr(character, stat) - value)
+            del character.equipment[self.slot]
+
 
 # Healing potion
 POTION = Item("Healing Potion", "Restores 20 HP", effect={"hp": 20})
@@ -70,3 +85,6 @@ IRON_ARMOR = Item("Iron-Plated chainmail", "A uncommon armor", equippable=True, 
 ELVEN_ARMOR = Item("Elvenleaf weave armor", "A rare armor", equippable=True, slot="armor", bonus={"constitution": 4})
 DRAKESCALE_ARMOR = Item("Drakescale armor", "A epic armor", equippable=True, slot="armor", bonus={"constitution": 5})
 METEORITE_ARMOR =  Item("Meteorite armor", "A legendary armor", equippable=True, slot="armor", bonus={"constitution": 6})
+
+
+

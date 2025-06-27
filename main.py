@@ -58,12 +58,14 @@ def update_game_state(game_state):
 def main(stdscr, player):
     # Setup
     curses.curs_set(0)
+    ui.init_colors()
     stdscr.clear()
 
     # Initialize game state
     game_state = game_state_module.initialize_game_state(player)
     game_state['last_position'] = dict(game_state['character'].position)
     game_state['context_view'] = 'world' # Default view is set to world
+    game_state['inventory_index'] = 0 # Default to first item
 
     # Initial UI Draw before entering the game loop    
     ui.draw_world_panel(stdscr, game_state)
@@ -87,16 +89,19 @@ def main(stdscr, player):
         # 4. Enter combat loop if necessary        
         player_pos = game_state['character'].position
         poi = world_map.get_poi_at(player_pos['x'], player_pos['y'])
+        current_poi_name = poi['name'] if poi else None
+        last_poi_name = game_state.get('last_poi')
+
+        # Reset cooldown if player left the POI
+        if current_poi_name != last_poi_name:
+            game_state['combat_just_ended'] = False
 
         # Only trigger combat if entering the camp from another location
         if poi and poi['name'] == 'Camp' and game_state['context_view'] != 'combat':
-            if not game_state.get('combat_just_ended') and game_state.get('last_poi') != poi['name']: 
+            if not game_state.get('combat_just_ended') and current_poi_name != last_poi_name: 
                 game_state['context_view'] = 'combat'
                 combat.start_combat(game_state)
-                game_state['last_poi'] = poi['name']
-        else:
-            game_state['last_poi'] = None  # Reset when not in a POI
-            game_state['combat_just_ended'] = False #Resets the combat cooldown flag when the player moves away from the camp
+        game_state['last_poi'] = current_poi_name
 
         # 5. Update Game State (if needed)
         update_game_state(game_state)

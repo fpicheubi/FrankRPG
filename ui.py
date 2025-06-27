@@ -31,6 +31,13 @@ import curses
 from world_map import WORLD_BOUNDS
 from world_map import POINTS_OF_INTEREST
 
+GREEN_TEXT = None
+
+def init_colors():
+    global GREEN_TEXT
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
+    GREEN_TEXT = curses.color_pair(1)
 
 def render_map(player_position):
     ''' Map rendering function for Pure logic.  It builds a 2D representation of the game world as a list of strings to keep it independant from the Curse UI system.  
@@ -87,25 +94,53 @@ def draw_context_panel(stdscr, game_state):
 
     if view == "character" and character:
         context_win.addstr(2, 2, f"Name: {character.name}")
-        context_win.addstr(3, 2, f"HP: {character.hp}/{character.max_hp}")
-        context_win.addstr(4, 2, f"Level: {character.level}")
-        context_win.addstr(4, 2, f"Experience: {character.experience}")
-        context_win.addstr(5, 2, f"Constitution: {character.constitution}")
-        context_win.addstr(6, 2, f"Strength: {character.strength}")
-        context_win.addstr(7, 2, f"Stamina: {character.stamina}")
+        context_win.addstr(3, 2, f"Level: {character.level}")
+        context_win.addstr(4, 2, f"HP: {character.hp}/{character.max_hp}")
+        context_win.addstr(5, 2, f"Experience: {character.experience}/{50*(1+character.level)}")
+        con_bonus = character.constitution - character.base_constitution
+        str_bonus = character.strength - character.base_strength
+        context_win.addstr(6, 2, f"Constitution: {character.base_constitution}")
+        if con_bonus > 0:
+            context_win.addstr(f" + {con_bonus}", GREEN_TEXT)
+        context_win.addstr(7, 2, f"Strength: {character.base_strength}")
+        if str_bonus > 0:
+            context_win.addstr(f" + {str_bonus}", GREEN_TEXT)
+        context_win.addstr(8, 2, f"Stamina: {character.stamina}")
 
     elif view == "combat":
         line1 = game_state.get('combat_line1', '')
         line2 = game_state.get('combat_line2', '')
+        line3 = game_state.get('combat_line3', '')
+        line4 = game_state.get('combat_line4', '')
         context_win.addstr(2, 2, line1)
         context_win.addstr(3, 2, line2)
+        context_win.addstr(4, 2, line3)
+        context_win.addstr(5, 2, line4)
 
     elif view == "inventory" and character:
         context_win.addstr(2, 2, "Inventory:")
-        for i, (item_name, data) in enumerate(character.inventory.items()):
+        line = 3
+        inventory_items = list(character.inventory.items())
+        selected_index = min(game_state.get('inventory_index', 0), len(inventory_items) - 1)
+
+        for idx, (item_name, data) in enumerate(inventory_items):
             qty = data['quantity']
-            context_win.addstr(3 + i, 4, f"- {item_name} x{qty}")
-        context_win.addstr(3 + len(character.inventory), 4, f"Gold: {character.gold}")
+            item = data['item']
+            equipped = any(e.name == item_name for e in character.equipment.values())
+            label = f"- {item_name} x{qty}"
+            if item.equippable:
+                label += " (Equipped)" if equipped else " (E: Equip)"
+
+            if idx == selected_index:
+                context_win.attron(curses.A_REVERSE)
+                context_win.addstr(line, 4, label)
+                context_win.attroff(curses.A_REVERSE)
+            else:
+                context_win.addstr(line, 4, label)
+            line += 1
+
+        context_win.addstr(line, 4, f"Gold: {character.gold}")
+
 
     elif view.startswith("poi:"):
         poi_name = view.split(":", 1)[1]
@@ -144,10 +179,17 @@ def draw_input_panel(stdscr, game_state):
         input_win.addstr(2, 2, "Contextual windows: C = Character, I = Inventory, O = Options")
         input_win.addstr(3, 2, "ESC = Return to world view")
         input_win.addstr(4, 2, "Q = Quit game")
-    else: # Logic for other POI will be defined starting here
+    elif context == "inventory":
+        input_win.addstr(1, 2, "Inventory Options:")
+        input_win.addstr(2, 4, "W/S = Selection up and down")
+        input_win.addstr(3, 4, "<Enter> = Toggle equip/unequip")
+        input_win.addstr(4, 4, "ESC or I = Return to world view")
+    # Logic for for other POIs
+    else:
         input_win.addstr(1, 2, "Directional keys: A = West , W = North , S = South , D = East")
         input_win.addstr(2, 2, "Contextual windows: C = Character, I = Inventory, O = Options")
         input_win.addstr(3, 2, "ESC = Return to world view")
         input_win.addstr(4, 2, "Q = Quit game")
+
     input_win.refresh()
 

@@ -44,45 +44,104 @@ def move_and_report(character, direction, game_state):
 
 
 def handle_input(key, game_state):
-    context = game_state.get("context_view", "world")
+    context = game_state.get("context_view")
 
-    ''' Provides combat-based input handling '''
+    # Inventory navigation and selection
+    if context == "inventory":
+        inventory_items = list(game_state['character'].inventory.items())
+        if not inventory_items:
+            return
+
+        if key in (ord('w'), ord('W')):
+            game_state['inventory_index'] = max(0, game_state['inventory_index'] - 1)
+        elif key in (ord('s'), ord('S')):
+            game_state['inventory_index'] = min(len(inventory_items) - 1, game_state['inventory_index'] + 1)
+        elif key in (curses.KEY_ENTER, 10, 13):  # Enter key
+            item_name, data = inventory_items[game_state['inventory_index']]
+            item = data['item']
+            character = game_state['character']
+            if item.equippable:
+                if any(e.name == item_name for e in character.equipment.values()):
+                    item.unequip(character)
+                    game_state['message'] = f"{item_name} unequipped."
+                else:
+                    item.equip(character)
+                    game_state['message'] = f"{item_name} equipped."
+        elif key in (27, ord('i'), ord('I')):  # ESC or i/I to return to world view
+            game_state['context_view'] = 'world'
+        return
+
+    # Handle follow-up input
+    if game_state.get('awaiting_input') == 'equip_item':
+        item_name = game_state.get('typed_input', '').strip()
+        character = game_state['character']
+        item_data = character.inventory.get(item_name)
+        if item_data and item_data['item'].equippable:
+            item_data['item'].equip(character)
+            game_state['message'] = f"{item_name} equipped."
+        else:
+            game_state['message'] = f"Cannot equip {item_name}."
+        game_state['awaiting_input'] = None
+
+    elif game_state.get('awaiting_input') == 'unequip_slot':
+        slot = game_state.get('typed_input', '').strip().lower()
+        character = game_state['character']
+        equipped_item = character.equipment.get(slot)
+        if equipped_item:
+            equipped_item.unequip(character)
+            game_state['message'] = f"{slot.capitalize()} unequipped."
+        else:
+            game_state['message'] = f"No item equipped in {slot}."
+        game_state['awaiting_input'] = None
+
+    # Combat input
     if context == 'combat':
         if game_state.get('combat_state') == 'awaiting_input':
             if key in [ord('a'), ord('A')]:
                 game_state['combat_state'] = 'player_attack'
                 combat.perform_attack(game_state)
+                return
             elif key in [ord('f'), ord('F')]:
                 game_state['combat_state'] = 'flee_attempt'
                 combat.flee_combat(game_state)
-            # Continue combat flow after player action
-            if game_state.get('combat_state') == 'enemy_turn':
-                combat.enemy_turn(game_state)
-            elif game_state.get('combat_state') == 'flee_attempt':
-                combat.flee_combat(game_state)
-            return  # Prevents fall-through to movement logic
+                return
+        if game_state.get('combat_state') == 'enemy_turn':
+            combat.enemy_turn(game_state)
+            return
+        elif game_state.get('combat_state') == 'flee_attempt':
+            combat.flee_combat(game_state)
+            return
+        # Wait for any key to acknowledge victory
+        if game_state.get('combat_state') == 'combat_end':
+            game_state['combat_state'] = None
+            game_state['context_view'] = 'world'
+            game_state['combat_just_ended'] = True
+            return
 
-    ''' Handles player input based on the key pressed '''
-    if key in (ord('w'), curses.KEY_UP):
-        move_and_report(game_state['character'], "north", game_state)
-    elif key in (ord('s'), curses.KEY_DOWN):
-        move_and_report(game_state['character'], "south", game_state)
-    elif key in (ord('a'), curses.KEY_LEFT):
-        move_and_report(game_state['character'], "west", game_state)
-    elif key in (ord('d'), curses.KEY_RIGHT):
-        move_and_report(game_state['character'], "east", game_state)
-    elif key == ord('i'):
-        game_state['context_view'] = 'inventory'
-    elif key == ord('c'):
-        game_state['context_view'] = 'character'
-    elif key == 27: # ESC  <- This might cause problems and would need future fixing. i.e. if the character is located on a POI, pressing ESC won't handle it properly and still flip to the world view
-        game_state['context_view'] = 'world'
-    elif key == ord('o'):
-        game_state['context_view'] = 'options'
-    elif key == ord('q'):
-        game_state['running'] = False
-    else:
-        game_state['message'] = "Unknown command."
+
+    # Movement and general input
+    if context != 'combat':
+        if key in (ord('w'), curses.KEY_UP):
+            move_and_report(game_state['character'], "north", game_state)
+        elif key in (ord('s'), curses.KEY_DOWN):
+            move_and_report(game_state['character'], "south", game_state)
+        elif key in (ord('a'), curses.KEY_LEFT):
+            move_and_report(game_state['character'], "west", game_state)
+        elif key in (ord('d'), curses.KEY_RIGHT):
+            move_and_report(game_state['character'], "east", game_state)
+        elif key == ord('i'):
+            game_state['context_view'] = 'inventory'
+            game_state['inventory_index'] = 0  # Reset selection when entering inventory
+        elif key == ord('c'):
+            game_state['context_view'] = 'character'
+        elif key == 27:  # ESC
+            game_state['context_view'] = 'world'
+        elif key == ord('o'):
+            game_state['context_view'] = 'options'
+        elif key == ord('q'):
+            game_state['running'] = False
+        else:
+            game_state['message'] = "Unknown command."
 
 
 def show_inventory(game_state):

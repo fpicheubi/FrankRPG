@@ -27,6 +27,7 @@ import random
 #Third party libraries imports
 #Local application imports
 from enemies import generate_enemy
+from enemies import ENEMY_LOOT_TABLE
 
 
 def start_combat(game_state):
@@ -36,7 +37,9 @@ def start_combat(game_state):
     enemy.max_hp = enemy.hp
     game_state['enemy'] = enemy
     game_state['combat_line1'] = f"A wild {enemy.name} appears!"
-    game_state['combat_line2'] = ""
+    game_state['combat_line2'] = f"The {enemy.name} has {enemy.hp}/{enemy.max_hp}"
+    game_state['combat_line3'] = f""
+    game_state['combat_line4'] = f""
     game_state['combat_state'] = 'awaiting_input'
 
     # turn-based combat loop
@@ -55,19 +58,30 @@ def start_combat(game_state):
 def perform_attack(game_state):
     player = game_state['character']
     enemy = game_state['enemy']
-    damage = max(1, player.strength - enemy.constitution)
+    damage = max(1, player.strength)
     enemy.hp -= damage
     #First line to be displayed in the combat-context window
     game_state['combat_line1'] = f"You hit the {enemy.name} for {damage} damage!"
     #Second line to be displayed in the combat-context window
     game_state['combat_line2'] = f"The {enemy.name} has ({enemy.hp}/{enemy.max_hp} HP remaining.  Meanwhile, you have {player.hp}/{player.max_hp} HP remaining"
-
-
+    #Third line to be displayed in the combat-context window
+    game_state['combat_line3'] = f""
+    game_state['combat_line4'] = f""
     if enemy.hp <= 0:
-        game_state['combat_line1'] = f" You defeated the {enemy.name} and gained {enemy.experience} experience!"
+        character_level_before_combat = player.level
         player.gain_experience(enemy.experience)
-        game_state['combat_state'] = None
-        game_state['context_view'] = 'world'
+        loot = ENEMY_LOOT_TABLE.get(enemy.name, [])
+        if loot and random.random() < 0.25: # 25% chance to drop items
+            dropped_item = random.choice(loot)
+            player.add_item(dropped_item)
+            game_state['combat_line4'] = f"You found a {dropped_item.name}!"
+        game_state['combat_line1'] = f"You defeated the {enemy.name} and gained {enemy.experience} experience!"
+        game_state['combat_line2'] = f"You have {player.hp}/{player.max_hp} HP remaining"
+        if character_level_before_combat < player.level:
+            game_state['combat_line3'] = f"You have gained a level!  {player.name} is now level {player.level}!"
+        else:
+            game_state['combat_line3'] = f""
+        game_state['combat_state'] = 'combat_end' # This ensures that the enemy defeated message will appear
         game_state['combat_just_ended'] = True #This ensures that after defeating an enemy, combat won't retrigger immediately
     else:
         game_state['combat_state'] = 'enemy_turn'
