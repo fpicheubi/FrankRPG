@@ -116,6 +116,9 @@ def draw_context_panel(stdscr, game_state):
         context_win.addstr(3, 2, line2)
         context_win.addstr(4, 2, line3)
         context_win.addstr(5, 2, line4)
+        message = game_state.get("message", "") 
+        if message:
+            context_win.addstr(height -9, 2, f"Msg: {message[:context_width - 4]}")
 
     elif view == "inventory" and character:
         context_win.addstr(2, 2, "Inventory:")
@@ -129,7 +132,7 @@ def draw_context_panel(stdscr, game_state):
             equipped = any(e.name == item_name for e in character.equipment.values())
             label = f"- {item_name} x{qty}"
             if item.equippable:
-                label += " (Equipped)" if equipped else " (E: Equip)"
+                label += " (Equipped)" if equipped else ""
 
             if idx == selected_index:
                 context_win.attron(curses.A_REVERSE)
@@ -140,7 +143,9 @@ def draw_context_panel(stdscr, game_state):
             line += 1
 
         context_win.addstr(line, 4, f"Gold: {character.gold}")
-
+        message = game_state.get("message", "") 
+        if message:
+            context_win.addstr(height -9, 2, f"Msg: {message[:context_width - 4]}")
 
     elif view.startswith("poi:"):
         poi_name = view.split(":", 1)[1]
@@ -192,4 +197,3 @@ def draw_input_panel(stdscr, game_state):
         input_win.addstr(4, 2, "Q = Quit game")
 
     input_win.refresh()
-

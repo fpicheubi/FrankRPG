@@ -68,24 +68,26 @@ def main(stdscr, player):
     game_state['inventory_index'] = 0 # Default to first item
 
     # Initial UI Draw before entering the game loop    
+    stdscr.refresh()
     ui.draw_world_panel(stdscr, game_state)
     ui.draw_context_panel(stdscr, game_state)
     ui.draw_input_panel(stdscr, game_state)
-    stdscr.refresh()
+    
 
     # Main game loop
     while game_state['running']:
-        # 1. Draw UI Panels
+        # 1. Get Player Input
+        key = stdscr.getch()
+    
+        # 2. Handle Input
+        input_handling.handle_input(key, game_state)
+
+        # 3. Draw UI Panels
         ui.draw_world_panel(stdscr, game_state)
         ui.draw_context_panel(stdscr, game_state)
         ui.draw_input_panel(stdscr, game_state)
 
-        # 2. Get Player Input
-        key = stdscr.getch()
-        
-        # 3. Handle Input
-        input_handling.handle_input(key, game_state)
-
+    
         # 4. Enter combat loop if necessary        
         player_pos = game_state['character'].position
         poi = world_map.get_poi_at(player_pos['x'], player_pos['y'])
@@ -101,6 +103,9 @@ def main(stdscr, player):
             if not game_state.get('combat_just_ended') and current_poi_name != last_poi_name: 
                 game_state['context_view'] = 'combat'
                 combat.start_combat(game_state)
+                ui.draw_world_panel(stdscr, game_state)
+                ui.draw_context_panel(stdscr, game_state)
+                ui.draw_input_panel(stdscr, game_state)
         game_state['last_poi'] = current_poi_name
 
         # 5. Update Game State (if needed)

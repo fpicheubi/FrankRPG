@@ -26,6 +26,7 @@ import combat
 import game_state as gs
 from world_map import get_poi_at
 
+
 def move_and_report(character, direction, game_state):
     ''' This simplifies repeating logic block for each movement directions'''
     success = navigation.move_character(character, direction)
@@ -51,7 +52,6 @@ def handle_input(key, game_state):
         inventory_items = list(game_state['character'].inventory.items())
         if not inventory_items:
             return
-
         if key in (ord('w'), ord('W')):
             game_state['inventory_index'] = max(0, game_state['inventory_index'] - 1)
         elif key in (ord('s'), ord('S')):
@@ -60,6 +60,7 @@ def handle_input(key, game_state):
             item_name, data = inventory_items[game_state['inventory_index']]
             item = data['item']
             character = game_state['character']
+
             if item.equippable:
                 if any(e.name == item_name for e in character.equipment.values()):
                     item.unequip(character)
@@ -67,6 +68,10 @@ def handle_input(key, game_state):
                 else:
                     item.equip(character)
                     game_state['message'] = f"{item_name} equipped."
+            elif "potion" in item.name.lower():
+                item.use(character)
+                character.remove_item(item_name)
+                game_state['message'] = f"You used {item_name}"
         elif key in (27, ord('i'), ord('I')):  # ESC or i/I to return to world view
             game_state['context_view'] = 'world'
         return
@@ -104,6 +109,18 @@ def handle_input(key, game_state):
             elif key in [ord('f'), ord('F')]:
                 game_state['combat_state'] = 'flee_attempt'
                 combat.flee_combat(game_state)
+                return
+            elif key in [ord('p'), ord('P')]:
+                character = game_state['character']
+                for item_name, data in character.inventory.items():
+                    item = data['item']
+                    if "potion" in item.name.lower():
+                        item.use(character)
+                        character.remove_item(item_name)
+                        game_state['message'] = f"You used {item_name}."
+                        break
+                else:
+                    game_state['message'] = "You have no potions to use."
                 return
         if game_state.get('combat_state') == 'enemy_turn':
             combat.enemy_turn(game_state)

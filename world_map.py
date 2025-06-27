@@ -36,7 +36,7 @@ WORLD_BOUNDS = {
     'x_min': 0,
     'x_max': 132, # The map is 132 columns large
     'y_min': 0,
-    'y_max': 69 # The map is 69 rows high
+    'y_max': 73 # The map is 73 rows high
 }
 
 ''' Define points of interest '''
