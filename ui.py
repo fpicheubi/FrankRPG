@@ -147,10 +147,20 @@ def draw_context_panel(stdscr, game_state):
         if message:
             context_win.addstr(height -9, 2, f"Msg: {message[:context_width - 4]}")
 
+    elif view =="options":
+        context_win.addstr(2, 2, "Save/Load games")
+        last_saved = game_state.get("last_saved", "Never")
+        context_win.addstr(4, 2, f"Last Saved: {last_saved}")        
+        message = game_state.get("message", "") 
+        if message:
+            context_win.addstr(height -9, 2, f"Msg: {message[:context_width - 4]}")
+
     elif view.startswith("poi:"):
         poi_name = view.split(":", 1)[1]
-        context_win.addstr(2, 2, f"{poi_name} Dashboard")
-        # Fountain-specific logic placeholder:
+        if view == "fountain" and character:
+            context_win.addstr(2, 2, "You have arrived at the fountain. There is nothing to see here")
+        else:
+            context_win.addstr(2, 2, f"{poi_name} Dashboard")
         # City-specific logic placeholder:
         # Merchant-Specific logic placeholder:
 
@@ -189,6 +199,10 @@ def draw_input_panel(stdscr, game_state):
         input_win.addstr(2, 4, "W/S = Selection up and down")
         input_win.addstr(3, 4, "<Enter> = Toggle equip/unequip")
         input_win.addstr(4, 4, "ESC or I = Return to world view")
+    elif context == "options":
+        input_win.addstr(1, 2, "(L)oad game")
+        input_win.addstr(2, 2, "(S)ave game")
+        input_win.addstr(3, 2, "ESC = Return to world view")
     # Logic for for other POIs
     else:
         input_win.addstr(1, 2, "Directional keys: A = West , W = North , S = South , D = East")

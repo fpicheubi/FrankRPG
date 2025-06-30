@@ -61,8 +61,9 @@ class Character:
         items.WOODEN_SWORD.equip(self)
         items.RAGS_ARMOR.equip(self)
 
+
     def to_dict(self):
-        # Used for saving the game
+        # Used for convert character into a JSON-serializable format
         return {
             "name": self.name,
             "constitution": self.constitution,
@@ -71,23 +72,31 @@ class Character:
             "hp": self.hp,
             "gold": self.gold,
             "position": self.position,
-            "inventory": self.inventory,
-            "equipment": self.equipment
+            "inventory": {
+                name: {
+                    "quantity": data["quantity"],
+                    "item": data["item"].name  # Save item name only
+                }
+                for name, data in self.inventory.items()
+            },
+            "equipment": {
+                slot: item.name  # Save equipped item name
+                for slot, item in self.equipment.items()
+            }
         }
 
+
     def from_dict(self):
-        # Used for loading the game
-        return {
-            "name": self.name,
-            "constitution": self.constitution,
-            "strength": self.strength,
-            "stamina": self.stamina,
-            "hp": self.hp,
-            "gold": self.gold,
-            "position": self.position,
-            "inventory": self.inventory,
-            "equipment": self.equipment
-        }
+        # Used to revert from JSON-Serialized character format
+        self.name = data["name"]
+        self.constitution = data["constitution"]
+        self.strength = data["strength"]
+        self.stamina = data["stamina"]
+        self.hp = data["hp"]
+        self.gold = data["gold"]
+        self.position = data["position"]
+        self.inventory = data["inventory"]
+        self.equipment = data["equipment"]
 
     def add_item(self, item, quantity=1):
         if item.name in self.inventory:

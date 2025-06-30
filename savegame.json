@@ -1,0 +1,37 @@
+{
+    "character": {
+        "name": "Frank",
+        "constitution": 19,
+        "strength": 26,
+        "stamina": 90,
+        "hp": 188,
+        "gold": 50,
+        "position": {
+            "x": 2,
+            "y": 20
+        },
+        "inventory": {
+            "Wooden Sword": {
+                "quantity": 1,
+                "item": "Wooden Sword"
+            },
+            "Rags armor": {
+                "quantity": 1,
+                "item": "Rags armor"
+            },
+            "Healing Potion": {
+                "quantity": 2,
+                "item": "Healing Potion"
+            },
+            "Iron Sword": {
+                "quantity": 1,
+                "item": "Iron Sword"
+            }
+        },
+        "equipment": {
+            "armor": "Rags armor",
+            "weapon": "Iron Sword"
+        }
+    },
+    "saved_at": "2025-06-27T09:25:37.592156"
+}

@@ -67,6 +67,13 @@ class Item:
             del character.equipment[self.slot]
 
 
+def get_item_by_name(name):
+    for obj in globals().values():
+        if isinstance(obj, Item) and obj.name == name:
+            return obj
+    return None
+
+
 # Healing potion
 POTION = Item("Healing Potion", "Restores 20 HP", effect={"hp": 20})
 

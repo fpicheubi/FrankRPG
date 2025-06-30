@@ -86,19 +86,20 @@ def main(stdscr, player):
         ui.draw_world_panel(stdscr, game_state)
         ui.draw_context_panel(stdscr, game_state)
         ui.draw_input_panel(stdscr, game_state)
-
     
-        # 4. Enter combat loop if necessary        
+        # 4. Reset combat cooldown if player just left the POI
         player_pos = game_state['character'].position
         poi = world_map.get_poi_at(player_pos['x'], player_pos['y'])
         current_poi_name = poi['name'] if poi else None
         last_poi_name = game_state.get('last_poi')
-
-        # Reset cooldown if player left the POI
         if current_poi_name != last_poi_name:
             game_state['combat_just_ended'] = False
 
-        # Only trigger combat if entering the camp from another location
+        # 5. Fountain logic
+        if poi and poi['name'] == 'Fountain' and game_state['context_view'] != 'fountain':
+            game_state['context_view'] = 'fountain'
+            
+        # 6. Trigger combat if entering the camp from another location
         if poi and poi['name'] == 'Camp' and game_state['context_view'] != 'combat':
             if not game_state.get('combat_just_ended') and current_poi_name != last_poi_name: 
                 game_state['context_view'] = 'combat'
@@ -108,10 +109,10 @@ def main(stdscr, player):
                 ui.draw_input_panel(stdscr, game_state)
         game_state['last_poi'] = current_poi_name
 
-        # 5. Update Game State (if needed)
+        # 7. Update Game State (if needed)
         update_game_state(game_state)
 
-        # 6. Refresh screen
+        # 8. Refresh screen
         stdscr.refresh()
 
 if __name__ == "__main__":

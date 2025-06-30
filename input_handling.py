@@ -24,6 +24,8 @@ import curses
 import navigation
 import combat
 import game_state as gs
+import save_game
+import items
 from world_map import get_poi_at
 
 
@@ -72,6 +74,21 @@ def handle_input(key, game_state):
                 item.use(character)
                 character.remove_item(item_name)
                 game_state['message'] = f"You used {item_name}"
+        elif key in (27, ord('i'), ord('I')):  # ESC or i/I to return to world view
+            game_state['context_view'] = 'world'
+        return
+
+    # Options menu
+    elif context == "options":
+        if key in (ord('s'), ord('S')): # Save game
+            save_game.save_game(game_state)
+            game_state['message'] = "Game saved successfully."
+        elif key in (ord('l'), ord('L')): # Load game
+            success = save_game.load_game(game_state, game_state['character'], items.get_item_by_name)
+            if success:
+                game_state['message'] = "Game loaded successfully."
+            else:
+                game_state['message'] = "Failed to load game."
         elif key in (27, ord('i'), ord('I')):  # ESC or i/I to return to world view
             game_state['context_view'] = 'world'
         return
@@ -137,7 +154,7 @@ def handle_input(key, game_state):
 
 
     # Movement and general input
-    if context != 'combat':
+    if context not in ('combat', 'options'):
         if key in (ord('w'), curses.KEY_UP):
             move_and_report(game_state['character'], "north", game_state)
         elif key in (ord('s'), curses.KEY_DOWN):
@@ -153,7 +170,7 @@ def handle_input(key, game_state):
             game_state['context_view'] = 'character'
         elif key == 27:  # ESC
             game_state['context_view'] = 'world'
-        elif key == ord('o'):
+        elif key in (ord('o'), ord('O')):
             game_state['context_view'] = 'options'
         elif key == ord('q'):
             game_state['running'] = False
